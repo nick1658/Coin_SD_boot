@@ -1,0 +1,24 @@
+--cpu ARM926EJ-S
+".\objects\main.o"
+".\objects\driver.o"
+".\objects\rtc.o"
+".\objects\exception.o"
+".\objects\mmu.o"
+".\objects\nand.o"
+".\objects\lowlevelinit.o"
+".\objects\s3c2416.o"
+".\objects\uart2416.o"
+".\objects\timer_irq.o"
+".\objects\wdc.o"
+".\objects\adc.o"
+".\objects\hsmmc.o"
+".\objects\my_cmd.o"
+".\objects\log.o"
+".\objects\diskio.o"
+".\objects\ff.o"
+".\objects\ccsbcs.o"
+".\objects\iap.o"
+--strict --scatter "..\System\s3c2416.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list ".\Coin_SD_boot.map" -o .\Objects\Coin_SD_boot.axf
