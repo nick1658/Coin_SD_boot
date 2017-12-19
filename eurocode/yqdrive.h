@@ -27,12 +27,29 @@
 #define  PAN_MOTOR_RIGHT(x)  OUT6(x)			//P2^1; TOUT1/GPB1  //  转盘正转 PAN_MOTOR_RIGHT(x)
 #define  PRESS_MOTOR(x) 	 OUT5(x)			//P2^2; TOUT0/GPB0  //压币电机
 
-#define  STORAGE_MOTOR(x) 	 OUT1(x)			//P2^3; CLKOUT0/GPH13  //斗送入电机
+#define  STORAGE_MOTOR(x) 	 OUT0(x)			//P2^3; CLKOUT0/GPH13  //斗送入电机
+#define  STORAGE_DIR(x) 	 OUT1(x)			//P2^3; CLKOUT0/GPH13  //斗送入电机转向
 #define  EMKICK1(x) 		 OUT3(x)			//P2^4; CLKOUT1/GPH14      // kick out 
 #define  EMKICK2(x) 		 OUT2(x)			//P2^5; //EINT15/GPG7   //kick back
 //#define  STOPCOIN_ELECMAG(x) OUT1(x) 			//P2^6; EINT1/GPF1/SD0_CDn  // 转盘阻币电磁铁
 
+#define STORAGE_MOTOR_STARTRUN() STORAGE_MOTOR(1)
+#define STORAGE_MOTOR_STOPRUN() STORAGE_MOTOR(0)
 
+
+#define STORAGE_DIR_P() STORAGE_DIR(0) //正转
+#define STORAGE_DIR_N() STORAGE_DIR(1) //反转
+
+
+
+#define ALL_STOP()	STORAGE_MOTOR_STOPRUN(); \
+					STORAGE_DIR_P(); \
+					OUT2(STOPRUN); \
+					OUT3(STOPRUN); \
+					OUT4(STOPRUN); \
+					OUT5(STOPRUN); \
+					OUT6(STOPRUN); \
+					OUT7(STOPRUN)
 
 //输入 端口
 #define DUINOWU 1       //对射 无物 为电平 0  槽型无物为 1
