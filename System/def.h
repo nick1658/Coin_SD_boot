@@ -2,13 +2,10 @@
 #define __DEF_H__
 
 #define U32 unsigned int
-#define u32 unsigned int
 #define U16 unsigned short
-#define u16 unsigned short
 #define S32 int
 #define S16 short int
 #define U8  unsigned char
-#define u8  unsigned char
 #define	S8  char
 
 typedef unsigned char BOOL;
@@ -39,7 +36,6 @@ typedef double         fp64;                    /* double precision floating poi
 
 
 typedef int int32_t;
-typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 
 //#define	BYTE	char

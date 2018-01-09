@@ -92,6 +92,11 @@ typedef struct
 }s_system_env;
 
 extern s_system_env sys_env;
+extern uint32_t time_out;
+
+
+extern void Delay_ms(uint32_t Count);	
+extern void Delay_us(uint32_t Count);
 
 void system_env_init (void);
 void print_ng_data (S16 index);

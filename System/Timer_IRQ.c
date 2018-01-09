@@ -139,9 +139,12 @@ void Timer3_Init(unsigned short us, void (*Callback)(void))
 
 
 volatile uint32_t SystemTick;
+uint32_t time_out = 0;
 
 void Timer2_IRQ(void)
 {
+	SystemTick++;
+	if (time_out)time_out++;
 }
 
 static void Timer2_Handler(void)
@@ -294,14 +297,15 @@ void Timer_Init (void)
 	//Timer0_Init(1000, Timer0_IRQ);//1ms
 	//Timer1_Init(1000, OSTimeTick);//1ms
 	//Timer1_Init(1000, Timer1_IRQ);//1ms
-	//Timer2_Init(500, Timer2_IRQ);//0.5ms
+	Timer2_Init(1000, Timer2_IRQ);//1ms
 	//Timer3_Init(100, Timer3_IRQ);//0.1ms
 	Timer4_Init(20000, Timer4_IRQ);//20ms
 	Timer4_Start ();
 	//Timer3_Start ();
-	//Timer2_Start ();
+	Timer2_Start ();
 	//Timer1_Start ();
 	//Timer0_Start ();
 }
+
 
 

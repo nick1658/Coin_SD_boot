@@ -7,6 +7,18 @@
 __align(4) U32 code_flag __attribute__((at(0x33104000), zero_init));
 //主函数
 
+extern void TftpTrm250ms(void); //250MS调用一次
+extern u32_t sys_now(void);
+void LwIP_Periodic_Handle(uint32_t localtime)
+{
+	static uint32_t pre_time = 0;
+  /* TCP periodic process every 250 ms */
+	if (localtime - pre_time >= 250/*TCP_TMR_INTERVAL*/){
+		pre_time =  localtime;
+		//tcp_tmr();
+		TftpTrm250ms();
+	}
+}
 int main(void)
 {
 	rWTCON = 0;	// 关闭开门狗
@@ -20,10 +32,16 @@ int main(void)
 
 	uart1_init();//串口打印机
 	uart2_init();//屏幕
+	cy_println ("\n#####   Coin_SD_boot Program For YQ ##### ");
 	Timer_Init ();
 	//watchdog_reset();/*初始化看门狗,T = WTCNT * t_watchdog*/
     rNF_Init();
-	cy_println ("\n#####   Coin_SD_boot Program For YQ ##### ");
+	// Initilaize the LwIP stack
+	lwip_init();	
+	// ip address 192, 168, 1, 20
+	ethernetif_config();	
+	httpd_init();	
+	tftp_init ();
 	//Hsmmc_Init ();
 	//cy_println ("Hsmmc_init_flag is %d", Hsmmc_exist ());
 	
@@ -41,7 +59,7 @@ int main(void)
 	cmd ();
 	
 	sys_env.uart0_cmd_flag = 0;
-	sys_env.boot_delay = 50*3; // 启动延时3秒
+	sys_env.boot_delay = 50*6; // 启动延时3秒
 	while (sys_env.boot_delay > 0 || sys_env.boot_stay == 0x55){
 		if (sys_env.tty_online_ms == 1){
 			sys_env.tty_online_ms = 0;
@@ -53,6 +71,13 @@ int main(void)
 			vTaskCmdAnalyze ();
 			sys_env.uart0_cmd_flag = 0;
 		}
+		if (DM9000_GetReceiveStatus()){
+			sys_env.boot_stay = 0x55;
+			ethernetif_input(&DM9000_netif);
+		}
+		LwIP_Periodic_Handle(sys_now ());
+		// Handle timeouts
+		sys_check_timeouts();
 	}
 	start_app ();
 	while (1){
@@ -64,5 +89,10 @@ int main(void)
 			vTaskCmdAnalyze ();
 			sys_env.uart0_cmd_flag = 0;
 		}
+		if (DM9000_GetReceiveStatus()){
+			ethernetif_input(&DM9000_netif);
+		}
+		// Handle timeouts
+		sys_check_timeouts();
 	}
 }

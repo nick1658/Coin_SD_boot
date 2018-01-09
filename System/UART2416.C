@@ -56,6 +56,8 @@ void Uart0_sendchar(U8 data)
 	WrUTXH0(data);
 } 
 
+
+
 void Uart0_SendString(const char *pt)
 {
     while(*pt)

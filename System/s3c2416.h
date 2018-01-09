@@ -11,83 +11,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <stdarg.h>
-#include <stdlib.h>
-
-#include "exception.h"
-#include "string.h"
-#include <ctype.h>
-#include "uart.h"
-#include "nand.h"
-#include "stdio.h"
-#include "math.h"
-#include "adc.h"
-#include "AD_filter.h"
-
-
-#include "yqadc.h"
-#include "yqcoin.h"
-#include "yqfile.h"
-#include "yqscreen.h"
-#include "yqsqlite3.h"
-#include "yqdrive.h"
-#include "my_cmd.h"
-#include "MMU.h"
-	
-#include "Hsmmc.h"
-
-#include "ff.h"
-#include "diskio.h" 
-#include "RTC.h"
-#include "log.h"
-#include "iap.h"
-	
-//#define __MY_DEBUG__
-#define UART_DEBUG	
-	
-#ifdef UART_DEBUG
-#define dbg(format, arg...) Uart0_Printf("\nDEBUG: " format "\nNick-Cmd:", ## arg)
-#else
-#define dbg(format, arg...) 
-#endif
-
-	
-#define __USE_COIN_LOG__
-#ifdef __USE_COIN_LOG__
-#define LOG(format, arg...) coin_log("" format "", ## arg)
-#else
-#define LOG(format, arg...)
-#endif
 
 
 
-#define MY_PRINT	
-#ifdef MY_PRINT
-#define cy_print(format, arg...) Uart0_Printf("" format "", ## arg)
-#define cy_println(format, arg...) Uart0_Printf("" format "\n", ## arg)
-#define cmd(format, arg...) Uart0_Printf("Nick-Cmd:" format "", ## arg)
-#else
-#define cy_println(format, arg...) 
-#define cmd(format, arg...) 
-#endif
-
-#define my_putc Uart0_SendByte
-#define my_puts Uart0_SendString
-
-#define ASSERT(i) \
-{\
-	if (i)\
-	{\
-		cy_println(" ASSERT(%d):Error !!! %s, %d", i, __FILE__, __LINE__);\
-		while(i);\
-	}\
-}
-
-
-
-
-//#include "option.h"
-
+#define __REG(x)	(*(volatile unsigned int *)(x))
+#define __REGw(x)	(*(volatile unsigned short *)(x))
+#define __REGb(x)	(*(volatile unsigned char *)(x))
 // chapter2 SYSEM CONTROLLER - jcs
 #define rLOCKCON0		(*(volatile unsigned *)0x4C000000)  		//MPLL lock time conut
 #define rLOCKCON1		(*(volatile unsigned *)0x4C000004)  		//EPLL lock time count
@@ -1208,20 +1137,42 @@ typedef struct tagHSMMC
 #define LED2_NOT		rGPBDAT ^= 0x00000040;
 
 
+#define     __I     volatile const          /*!< defines 'read only' permissions      */
+#define     __O     volatile                  /*!< defines 'write only' permissions     */
+#define     __IO    volatile                  /*!< defines 'read / write' permissions   */
+    /* exact-width signed integer types */
+typedef   signed          char int8_t;
+typedef   signed short     int int16_t;
+typedef   signed           int int32_t;
 
+    /* exact-width unsigned integer types */
+typedef unsigned          char uint8_t;
+typedef unsigned short     int uint16_t;
+typedef unsigned           int uint32_t;
 
+typedef int32_t  s32;
+typedef int16_t s16;
+typedef int8_t  s8;
 
+typedef const int32_t sc32;  /*!< Read Only */
+typedef const int16_t sc16;  /*!< Read Only */
+typedef const int8_t sc8;   /*!< Read Only */
 
+typedef uint32_t  u32;
+typedef uint16_t u16;
+typedef uint8_t  u8;
 
+typedef const uint32_t uc32;  /*!< Read Only */
+typedef const uint16_t uc16;  /*!< Read Only */
+typedef const uint8_t uc8;   /*!< Read Only */
 
+typedef __IO uint32_t  vu32;
+typedef __IO uint16_t vu16;
+typedef __IO uint8_t  vu8;
 
-
-
-
-
-
-
-
+typedef __I uint32_t vuc32;  /*!< Read Only */
+typedef __I uint16_t vuc16;  /*!< Read Only */
+typedef __I uint8_t vuc8;   /*!< Read Only */
 
 
 
@@ -1237,6 +1188,103 @@ typedef struct tagHSMMC
 // When you access any address, write buffer must be cleared if you want to read this address.
 // Otherwise, twice interrupt request could be occured per one interrupt.
 // in the case that the ISR is very short.
+
+
+	
+//#include "stdint.h"
+#include <stdarg.h>
+#include <stdlib.h>
+
+#include "exception.h"
+#include "string.h"
+#include <ctype.h>
+#include "uart.h"
+#include "nand.h"
+#include "stdio.h"
+#include "math.h"
+#include "adc.h"
+#include "AD_filter.h"
+
+
+#include "yqadc.h"
+#include "yqcoin.h"
+#include "yqfile.h"
+#include "yqscreen.h"
+#include "yqsqlite3.h"
+#include "yqdrive.h"
+#include "my_cmd.h"
+#include "MMU.h"
+	
+#include "Hsmmc.h"
+
+#include "ff.h"
+#include "diskio.h" 
+#include "RTC.h"
+#include "log.h"
+#include "iap.h"
+
+
+#include "lwip/netif.h"
+#include "lwip/init.h"
+#include "lwip/opt.h"
+#include "lwip/tcp.h"
+#include "lwip/dhcp.h"
+#include "netif/etharp.h"
+#include "lwip/timers.h"
+#include "httpd.h"
+#include "tftpserver.h"
+#include "DM9000.h"
+	
+//#define __MY_DEBUG__
+#define UART_DEBUG	
+	
+#ifdef UART_DEBUG
+#define dbg_ln(format, arg...) Uart0_Printf("\nDEBUG: " format "\nNick-Cmd:", ## arg)
+#define dbg(format, arg...) Uart0_Printf("DEBUG: " format "", ## arg)
+#define dbg_null(format, arg...) Uart0_Printf("" format "", ## arg)
+#else
+#define dbg(format, arg...) 
+#endif
+
+	
+#define __USE_COIN_LOG__
+#ifdef __USE_COIN_LOG__
+#define LOG(format, arg...) coin_log("" format "", ## arg)
+#else
+#define LOG(format, arg...)
+#endif
+
+
+
+#define MY_PRINT	
+#ifdef MY_PRINT
+#define cy_print(format, arg...) Uart0_Printf("" format "", ## arg)
+#define cy_println(format, arg...) Uart0_Printf("" format "\n", ## arg)
+#define cmd(format, arg...) Uart0_Printf("Nick-Cmd:" format "", ## arg)
+#else
+#define cy_println(format, arg...) 
+#define cmd(format, arg...) 
+#endif
+
+#define my_putc Uart0_SendByte
+#define my_puts Uart0_SendString
+
+#define ASSERT(i) \
+{\
+	if (i)\
+	{\
+		cy_println(" ASSERT(%d):Error !!! %s, %d", i, __FILE__, __LINE__);\
+		while(i);\
+	}\
+}
+
+
+
+
+//#include "option.h"
+
+
+
 
 #ifdef __cplusplus
 }
