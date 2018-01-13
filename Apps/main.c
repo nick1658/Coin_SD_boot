@@ -59,21 +59,28 @@ int main(void)
 	cmd ();
 	
 	sys_env.uart0_cmd_flag = 0;
-	sys_env.boot_delay = 50*6; // Æô¶¯ÑÓÊ±3Ãë
+	sys_env.boot_delay = 50*3; // Æô¶¯ÑÓÊ±3Ãë
 	while (sys_env.boot_delay > 0 || sys_env.boot_stay == 0x55){
 		if (sys_env.tty_online_ms == 1){
 			sys_env.tty_online_ms = 0;
 			sys_env.boot_stay = 0x55;
-			update_finish ();
+			update_finish (sys_env.update_flag);
 		}
 		if (sys_env.uart0_cmd_flag == 1){
 			sys_env.boot_stay = 0x55;
 			vTaskCmdAnalyze ();
 			sys_env.uart0_cmd_flag = 0;
 		}
+		if( touch_flag ==1){
+			touchresult();//ÅÐ¶Ï´¥Ãþ ×´Ì¬µÄº¯Êý
+			touch_flag =0;
+		}
 		if (DM9000_GetReceiveStatus()){
-			sys_env.boot_stay = 0x55;
 			ethernetif_input(&DM9000_netif);
+		}
+		if (sys_env.net_task == 1){
+			sys_env.net_task = 0;
+			run_command ("reset");
 		}
 		LwIP_Periodic_Handle(sys_now ());
 		// Handle timeouts
@@ -83,11 +90,15 @@ int main(void)
 	while (1){
 		if (sys_env.tty_online_ms == 1){
 			sys_env.tty_online_ms = 0;
-			update_finish ();
+			update_finish (sys_env.update_flag);
 		}
 		if (sys_env.uart0_cmd_flag == 1){
 			vTaskCmdAnalyze ();
 			sys_env.uart0_cmd_flag = 0;
+		}
+		if( touch_flag ==1){
+			touchresult();//ÅÐ¶Ï´¥Ãþ ×´Ì¬µÄº¯Êý
+			touch_flag =0;
 		}
 		if (DM9000_GetReceiveStatus()){
 			ethernetif_input(&DM9000_netif);

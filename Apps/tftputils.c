@@ -19,9 +19,50 @@ u16_t tftp_extract_block(char *buf)
 }
 
 /* Extract the block number from a TFTP message in a buffer */
-void tftp_extract_filename(char *fname, char *buf)
+void tftp_extract_filename(s_tftp_cmd *p_tftp_cmd, char *buf, int buf_len)
 {
-  strcpy(fname, buf + 2);
+	int i = 2, j = 0;
+	for (; i < buf_len; i++){//file name
+		if (buf[i] == 0){
+			i++;
+			p_tftp_cmd->file_name[j] = 0;
+			j = 0;
+			break;
+		}else{
+			p_tftp_cmd->file_name[j++] = buf[i];
+		}
+	}
+	for (; i < buf_len; i++){//mode
+		if (buf[i] == 0){
+			i++;
+			p_tftp_cmd->mode[j] = 0;
+			j = 0;
+			break;
+		}else{
+			p_tftp_cmd->mode[j++] = buf[i];
+		}
+	}
+	for (; i < buf_len; i++){//op
+		if (buf[i] == 0){
+			i++;
+			p_tftp_cmd->op[j] = 0;
+			j = 0;
+			break;
+		}else{
+			p_tftp_cmd->op[j++] = buf[i];
+		}
+	}
+	for (; i < buf_len; i++){//op_v
+		if (buf[i] == 0){
+			i++;
+			p_tftp_cmd->op_v[j] = 0;
+			j = 0;
+			break;
+		}else{
+			p_tftp_cmd->op_v[j++] = buf[i];
+		}
+	}
+	//strcpy(fname, buf + 2);
 }
 
 /* Set the opcode in the 2 first bytes for RRQ / WRQ / DATA / ACK / ERROR */

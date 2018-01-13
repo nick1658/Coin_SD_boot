@@ -524,6 +524,83 @@ U8 Disp_Indexpic[Number_IndexpicA][Number_IndexpicB]=         //MCU¿ØÖÆÍ¼Æ¬¼Ä´æÆ
 	{0xA5,0x5A,0x04,0x80,0x03,0x00,0xAE},	//ÏÔÊ¾ Ë÷Òý 174	
 	{0xA5,0x5A,0x04,0x80,0x03,0x00,0xAF},	//ÏÔÊ¾ Ë÷Òý 175
 };
+volatile U8 touchnum[TSGET_NUM] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+volatile U16 uartcount = 0;  // ´®¿Ú2½ÓÊÕ ×Ö½Ú ¼ÆÊý
+volatile U16 touch_flag =0;  // ´®¿Ú2½ÓÊÕ ±êÖ¾Î»
+void touchget_from_uart2(void)    //receive the touch from dgus at real time 
+{
+
+	U8 temp;
+	while(!(rUTRSTAT2&0x1));
+	temp = rURXH2;//¶ÁÈ¡¼Ä´æÆ÷Öµ
+	
+	if(touch_flag ==0)
+	{
+		if( (uartcount == 0)&& (temp == 0xA5))//0xa5 ÒýË÷
+		{
+			touchnum[uartcount] = temp;
+//			cy_print("%d:%x ",uartcount,touchnum[uartcount]);
+			uartcount++;
+		}
+		else if( (uartcount == 1)&& (temp == 0x5A))//0x5a ÒýË÷
+		{
+			touchnum[uartcount] = temp;
+//			cy_print("%d:%x ",uartcount,touchnum[uartcount]);
+			uartcount++;
+		}
+		else if( (uartcount == 2))//×Ö½ÚÊý
+		{
+			touchnum[uartcount] = temp;
+//			cy_print("%d:%x ",uartcount,touchnum[uartcount]);
+			uartcount++;
+		}
+		//×Ü¹²Òª½ÓÊÜµÄ×Ö½ÚÊý + 3ÊÇÒòÎªÓÐÊý¾ÝÖ¡Í·A5 5A ºÍ³¤¶È¹²Èý¸ö×Ö½Ú
+		else if( (uartcount > 2)&& (uartcount < (touchnum[2]+3)))
+		{
+			touchnum[uartcount] = temp;
+//			cy_print("%d:%x ",uartcount,touchnum[uartcount]);
+			if((uartcount ==  (touchnum[2]+2)))
+			{
+				touch_flag =1; //´¥ÃþÆÁÊý¾Ý½ÓÊÕÍê³É
+				////////////////////////////////////////////////////////////////////////////////////////
+				/////////////////////////////////////////////////////////////////////////////////////
+				uartcount = 0;
+				return;
+			}
+			uartcount++;
+		}
+		else
+		{
+			cy_print("U %d ",uartcount);
+			uartcount = 0;
+		}
+	}
+	else 
+	{
+		uartcount = 0;
+	}
+	return;
+}
+
+
+
+void touchresult(void)      //¸ù¾Ý½ÓÊÕµ½µÄ  Êý À´¾ö¶¨ Ö´ÐÐµÄÈÎÎñ
+{
+	U16 addr, value;
+	addr = (touchnum[4] << 8) | (touchnum[5]);
+	value = (touchnum[7] << 8) | (touchnum[8]);
+	///////////////A5 5A 06 83 00 06 01 00 0x:1 2/////////////////////////
+	switch (addr){
+		case ADDR_RESET:  //
+			if (value == 0x0123){
+				comscreen(Disp_Indexpic[0],Number_IndexpicB);
+				cy_println ("Software Reset...");
+				run_command ("reset");	
+			}
+			break;
+		default:break;
+	}
+}
 
 
 void comscreen(U8* str,S16 length)  //·¢ËÍ Ö¸ÁîÖÁÒº¾§ÆÁ57600bps
@@ -597,25 +674,34 @@ u16 CRC16(char * _data_buf,int len)
 	return (uchCRCHi<<8|uchCRCLo);
 }
 
-void update_finish (void)
+void update_finish (e_update_flag flag)
 {
 	u16 crc = 0;
-	if (rec_count > 1)
-	{	
-		crc = CRC16 (iap_code_buf, rec_count - 2);//CRC Ð£Ñé
-		if (crc == ((iap_code_buf[rec_count - 2] << 8) | iap_code_buf[rec_count - 1])){//×îºóÁ½¸ö×Ö½ÚÊÇÐ£ÑéÂë
-			cy_println("OK");//Ð£ÑéÍ¨¹ý
-			cmd();
+	switch (flag)
+	{
+		case UART_UPDATE:
+			if (rec_count > 1){	
+				crc = CRC16 (iap_code_buf, rec_count - 2);//CRC Ð£Ñé
+				if (crc == ((iap_code_buf[rec_count - 2] << 8) | iap_code_buf[rec_count - 1])){//×îºóÁ½¸ö×Ö½ÚÊÇÐ£ÑéÂë
+					cy_println("OK");//Ð£ÑéÍ¨¹ý
+					cmd();
+					run_command ("write flash");
+				}else{
+					cy_println("ERROR");//Ð£ÑéÊ§°ÜÇëÇóÖØ·¢
+					cmd();
+					comscreen(Disp_Indexpic[27],Number_IndexpicB);	//´¥ÃþÆÁÌø×ªµ½ÌáÊ¾¹Ì¼þ¶ªÊ§½çÃæ
+				}
+				rec_count = 0;
+				sys_env.tty_mode = 0;
+				memset (cmd_analyze.rec_buf, 0, sizeof(cmd_analyze.rec_buf));
+			}
+		break;
+		case NET_UPDATE:
 			run_command ("write flash");
-		}else{
-			cy_println("ERROR");//Ð£ÑéÊ§°ÜÇëÇóÖØ·¢
-			cmd();
-			comscreen(Disp_Indexpic[27],Number_IndexpicB);	//´¥ÃþÆÁÌø×ªµ½ÌáÊ¾¹Ì¼þ¶ªÊ§½çÃæ
-		}
-		rec_count = 0;
-		sys_env.tty_mode = 0;
-		memset (cmd_analyze.rec_buf, 0, sizeof(cmd_analyze.rec_buf));
+			break;
+		default:break;
 	}
+	sys_env.update_flag = NULL_UPDATE;
 }
 /*Ìá¹©¸ø´®¿ÚÖÐ¶Ï·þÎñ³ÌÐò£¬±£´æ´®¿Ú½ÓÊÕµ½µÄµ¥¸ö×Ö·û*/                                   
 void fill_rec_buf(char data)                                                           
@@ -738,6 +824,7 @@ void write_para_1 (int32_t arg[])
 		memset (iap_code_buf, 0, sizeof(iap_code_buf));
 	}else if (arg[0] == string_to_dec((uint8 *)("start"))){
 		sys_env.tty_mode = 0x55;
+		sys_env.update_flag = UART_UPDATE;
 		rec_count = 0;
 		comscreen(Disp_Indexpic[22],Number_IndexpicB);	//´¥ÃþÆÁÌø×ªµ½¸üÐÂ½çÃæ 
 	}else if (arg[0] == string_to_dec((uint8 *)("flash"))){

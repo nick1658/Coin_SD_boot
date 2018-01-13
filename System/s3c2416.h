@@ -1243,7 +1243,9 @@ typedef __I uint8_t vuc8;   /*!< Read Only */
 #define dbg(format, arg...) Uart0_Printf("DEBUG: " format "", ## arg)
 #define dbg_null(format, arg...) Uart0_Printf("" format "", ## arg)
 #else
+#define dbg_ln(format, arg...) 
 #define dbg(format, arg...) 
+#define dbg_null(format, arg...) 
 #endif
 
 	

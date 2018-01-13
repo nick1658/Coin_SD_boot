@@ -173,6 +173,7 @@ void Uart2_sendchar(U8 data)
 	WrUTXH2(data);
 } 
 
+extern void touchget_from_uart2(void);
 //void __irq HandleUART2(void)   //串口2 中断接收函数 
 void HandleUART2(void)   //串口2 中断接收函数 
 {
@@ -180,7 +181,7 @@ void HandleUART2(void)   //串口2 中断接收函数
 	rSRCPND1 |= 1<<15;	//串口2 第15位
 	rINTPND1 |= 1<<15;
 	
-	//touchget_from_uart2();    //receive the touch from dgus at real time 
+	touchget_from_uart2();    //receive the touch from dgus at real time 
 }
 
 

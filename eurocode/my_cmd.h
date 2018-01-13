@@ -68,6 +68,13 @@ typedef struct
 }cmd_analyze_struct;  
 
 
+typedef enum {
+  NULL_UPDATE = 0,
+  UART_UPDATE = 1,
+  NET_UPDATE = 2,
+  NET_UPDATEING = 3
+} e_update_flag;
+
 typedef struct
 {
 	S16 print_wave_to_pc;
@@ -89,7 +96,10 @@ typedef struct
 	U32 tty_online_ms;
 	U32 boot_delay;
 	U32 boot_stay;
+	e_update_flag update_flag;
+	U32 net_task;
 }s_system_env;
+
 
 extern s_system_env sys_env;
 extern uint32_t time_out;
@@ -101,7 +111,7 @@ extern void Delay_us(uint32_t Count);
 void system_env_init (void);
 void print_ng_data (S16 index);
 void print_system_env_info (void);
-void update_finish (void);
+void update_finish (e_update_flag flag);
 void fill_rec_buf(char data);
 void vTaskCmdAnalyze( void );
 void run_command (char * _cmd_str);

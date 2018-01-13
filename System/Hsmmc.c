@@ -24,6 +24,19 @@ Delay2
 		BX   LR
 }
 
+__asm void Delay_ms(unsigned int nCount) 
+{
+//延时1us,共延时nCount(R0) ms
+Delay1_ms	
+		LDR  R1, =1000  // Arm clock为400M		
+Delay2_ms
+		SUBS R1, R1, #1  // 一个Arm clock
+		BNE  Delay2_ms      // 跳转会清流水线，3个Arm clock
+		SUBS R0, R0, #1	 // 调用者确保nCount不为0
+		BNE	 Delay1_ms
+		BX   LR
+}
+
 
 static void Hsmmc_ClockOn(unsigned char On)
 {

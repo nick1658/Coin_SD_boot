@@ -5,7 +5,7 @@
 #include "tftpserver.h"
 
 tftp_opcode tftp_decode_op(char *buf);
-void tftp_extract_filename(char *fname, char *buf);
+void tftp_extract_filename(s_tftp_cmd *p_tftp_cmd, char *buf, int buf_len);
 u16_t tftp_extract_block(char *buf);
 void tftp_set_opcode(char *buffer, tftp_opcode opcode);
 void tftp_set_errorcode(char *buffer, tftp_errorcode errCode);

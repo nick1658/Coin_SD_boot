@@ -22,16 +22,16 @@ void dgus_tf1word(int addr,long data);  	  //transfer 1word data variables to sp
 void disp_KJAmount(void); // initial addr on zhu jiemian ze zs forge
 void disp_data(int addr1,int addr2,int addr3); 	 //pre picture ,specify address display data variable
 void disp_preselflearn(int max0,int min0,int max1,int min1,int max2,int min2);    //pre coin admax admin when self learning 
+void counter_clear (void); //
 
 
 /////////////////变量/////////////////////////
 
-#define	ADDR_CPFG 	0x0004 	 // 数据变量显示  计数界面 异币
 #define	ADDR_CPZE 	0x0000 	 // 数据变量显示 计数界面 金额
 #define	ADDR_CPZS 	0x0002 	 // 数据变量显示   计数界面 数量
+#define	ADDR_CPFG 	0x0004 	 // 数据变量显示  计数界面 异币
 
 #define ADDR_CRUN    0x06  	 // 按键值返回 计数界面  启动按钮 
-#define ADDR_PGH	0x0007   // 数据变量显示  工号
 #define ADDR_PGH1	0x07  	 // 按键值返回   工号
 #define	ADDR_TZBC 	0x08  	//  按键值返回
 #define	ADDR_DBDATA 0x09  	//  按键值返回 
@@ -43,7 +43,7 @@ void disp_preselflearn(int max0,int min0,int max1,int min1,int max2,int min2);  
 #define	ADDR_XD05 	0x0011  	// 数据变量显示  详单  jiemian 0.05
 #define	ADDR_XD02 	0x0013  	// 数据变量显示  详单  jiemian 0.02
 #define	ADDR_XD01 	0x0015  	// 数据变量显示   详单 jiemian 0.01
-#define	ADDR_XDB1 	0x0017  	// 数据变量显示  详单   jiemian 补1 现用于欧元第7种
+#define	ADDR_XDB1 	0x0017  	// 数据变量显示  详单   jiemian 大1角
 #define	ADDR_XDB2 	0x0019  	// 数据变量显示   详单  jiemian 补2 现用于欧元第8种
 //纪念币
 #define	ADDR_XD1000 	0x001B  	// 数据变量显示   详单  jiemian 纪念币10元
@@ -52,53 +52,24 @@ void disp_preselflearn(int max0,int min0,int max1,int min1,int max2,int min2);  
 #define	ADDR_XDZS 	ADDR_CPZS 	// 数据变量显示  详单  jiemian ZS 
 #define	ADDR_XDFG 	ADDR_CPFG 	// 数据变量显示  详单  jiemian FORGE
 //详单   加币种  可以使用的地址  001B -001C  001D- 001E
-//#define ADDR_YZC0D  0x001F   	// 图标变量显示   预置,	mianzhi  coin name 面额0
 #define ADDR_YZ_RESET  0x1F   		// 按键值返回   预置,	mianzhi  coin name
-//#define ADDR_YZSL  0x0020  		// 数据变量显示 ,  预置,		shuliang  
-// 1f 20  0021 23 24 25 26 27 28 
-#define ADDR_YRUN    0x22	//  按键值返回  预置计数
 
-#define	ADDR_YZC0JS 	0x0080 	 // 数据变量显示 ,  预置,YUZHI COIN 0 JI SHU	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC1JS 	0x0082 	 // 数据变量显示 ,  预置,	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC2JS 	0x0082 	 // 数据变量显示 ,  预置,	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC3JS 	0x0084 	 // 数据变量显示 ,  预置,	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC4JS 	0x0084 	 // 数据变量显示 ,  预置,	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC5JS 	0x0086 	 // 数据变量显示 ,  预置,	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC6JS 	0x0088 	 // 数据变量显示 ,  预置,	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC7JS 	0x008A 	 // 数据变量显示 ,  预置,	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC8JS 	0x0084 	 // 数据变量显示 ,  预置,	data variable 面额0 的预置计数变量 实时显示
-//纪念币
-#define	ADDR_YZC9JS 	0x0590 	 // 数据变量显示 ,  预置,	data variable 面额10 的预置计数变量 实时显示
-#define	ADDR_YZC10JS 	0x0592 	 // 数据变量显示 ,  预置,	data variable 面额5 的预置计数变量 实时显示
-
-#define	ADDR_YZC0ZT 	0x0090 	 // 数据变量显示 ,  预置,YUZHI COIN 0 ZHUANG TAI	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC1ZT 	0x0091 	 // 数据变量显示 ,  预置,YUZHI COIN 0 ZHUANG TAI	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC2ZT 	0x0091 	 // 数据变量显示 ,  预置,YUZHI COIN 0 ZHUANG TAI	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC3ZT 	0x0092 	 // 数据变量显示 ,  预置,YUZHI COIN 0 ZHUANG TAI	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC4ZT 	0x0092 	 // 数据变量显示 ,  预置,YUZHI COIN 0 ZHUANG TAI	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC5ZT 	0x0093 	 // 数据变量显示 ,  预置,YUZHI COIN 0 ZHUANG TAI	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC6ZT 	0x0094// 数据变量显示 ,  预置,YUZHI COIN 0 ZHUANG TAI	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC7ZT 	0x0095 	 // 数据变量显示 ,  预置,YUZHI COIN 0 ZHUANG TAI	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC8ZT 	0x0092 	 // 数据变量显示 ,  预置,YUZHI COIN 0 ZHUANG TAI	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC9ZT 	0x0098 	 // 数据变量显示 ,  预置,YUZHI COIN 0 ZHUANG TAI	data variable 面额0 的预置计数变量 实时显示
-#define	ADDR_YZC10ZT 	0x0099 	 // 数据变量显示 ,  预置,YUZHI COIN 0 ZHUANG TAI	data variable 面额0 的预置计数变量 实时显示
 
 
 #define	ADDR_YZS0 	0x0029 	 // 数据变量显示 ,  预置,	data variable
 #define	ADDR_YZS1	0x002B  //  数据变量显示 ,  预置,,	data variable
-#define	ADDR_YZS2	0x002B  //  数据变量显示 ,  预置,  , data variable
-#define	ADDR_YZS3 	0x002D  //  数据变量显示 ,  预置,,	data variable
-#define	ADDR_YZS4	0x002D  //  数据变量显示 ,  预置,	data variable
-#define	ADDR_YZS5	0x002D  //  数据变量显示 ,  预置, data variable
-#define	ADDR_YZS6	0x002F  //  数据变量显示 ,  预置, data variable
-#define	ADDR_YZS7	0x0031  //  数据变量显示 ,  预置, data variable
-#define	ADDR_YZS8	0x0033  //  数据变量显示 ,  预置, data variable
+#define	ADDR_YZS2	0x002D  //  数据变量显示 ,  预置,  , data variable
+#define	ADDR_YZS3 	0x002F  //  数据变量显示 ,  预置,,	data variable
+#define	ADDR_YZS4	0x0031  //  数据变量显示 ,  预置,	data variable
+#define	ADDR_YZS5	0x0033  //  数据变量显示 ,  预置, data variable
+#define	ADDR_YZS6	0x0035  //  数据变量显示 ,  预置, data variable
+#define	ADDR_YZS7	0x0037  //  数据变量显示 ,  预置, data variable
+#define	ADDR_YZS8	0x0039  //  数据变量显示 ,  预置, data variable
 
 //纪念币
 #define	ADDR_YZS9	0x0539  //  数据变量显示 ,  预置10, data variable
 #define	ADDR_YZS10	0x053b  //  数据变量显示 ,  预置5, data variable
 
-#define	ADDR_PRIT 	0x39  	//  按键值返回 print
 //-003A
 #define ADDR_CNTB   0x003B  //  图标变量显示  zi xuexi  jiemian learning ,coin name tubiao dispaly
 #define ADDR_CNTB1   0x3B   //  按键值返回  ,  zi xuexi  jiemian learning ,coin name tubiao dispaly
@@ -110,16 +81,14 @@ void disp_preselflearn(int max0,int min0,int max1,int min1,int max2,int min2);  
 #define	ADDR_A2MA 	0x0041  //   数据变量显示 , zi xuexi  jiemian learning ,pre AD2  max
 #define	ADDR_A2MI 	0x0042  //   数据变量显示 , zi xuexi  jiemian learning ,pre AD2  min
 #define ADDR_GSTB   0x0043  //   图标变量显示   zi xuexi  jiemian learning ,ganshe tubiao dispaly addr
-#define GSKB  0x00   //这个不是地址，只是一个数字 表示选0图标 no ganshe  tubiao
-
-#define	ADDR_TTS 	0x0044  //    图标变量显示  不需要初始化 baojing jiemian TXT tishi 
+#define	ADDR_PRIT 	0x0044  	//  按键值返回 print
 
 #define ADDR_KICK1_M	0x0045   //  图标变量显示  bujian zhixing jiemian, cyline 1
 #define ADDR_KICK2_M	0x0046   //  图标变量显示  bujian zhixing jiemian, cyline 2
 #define ADDR_STORAGE_MOTOR	0x0047   //  图标变量显示  bujian zhixing jiemian, pan motor right zheng
-#define ADDR_ZXPML	0x0048   //  图标变量显示  bujian zhixing jiemian, pan motor left fan
+#define ADDR_DETCET1	0x0048   //  图标变量显示  bujian zhixing jiemian, pan motor left fan
 #define ADDR_DEBUG	0x0049   //  图标变量显示  bujian zhixing jiemian, chuangsong motor
-#define ADDR_ZXYM	0x004A   //  图标变量显示  bujian zhixing jiemian, yabi motor
+#define ADDR_MODE	0x004A   //  图标变量显示  bujian zhixing jiemian, yabi motor
 #define ADDR_ZXLD	0x004B   //  图标变量显示  bujian zhixing jiemian, three  motor run together
 
 
@@ -164,6 +133,10 @@ void disp_preselflearn(int max0,int min0,int max1,int min1,int max2,int min2);  
 #define ADDR_LEVEL1000 	0x206   // 10元硬币的清分等级设置
 #define ADDR_LEVEL500 	0x207   // 5元硬币的清分等级设置
 
+#define ADDR_CPU_USAGE 0x300
+#define ADDR_PASSWORD 0x302 //password
+#define ADDR_RESET 0x304 //reset
+
 //报错 函数  
 #define ALERT_MSG(TIPS,MSG) { \
 	dgus_tfbeep(TIMEBP2); \
@@ -171,7 +144,11 @@ void disp_preselflearn(int max0,int min0,int max1,int min1,int max2,int min2);  
 	dgus_chinese(0x400, TIPS, strlen(TIPS)); \
 	dgus_chinese(0x416, MSG, strlen(MSG)); \
 	comscreen(Disp_Indexpic[BJJM],Number_IndexpicB); \
-	sys_env.workstep = 0; \
+}
+
+#define SEND_ERROR(CODE) { \
+	alertflag = CODE; \
+	sys_env.workstep =88; \
 }
 ///////////////////////////////////////////////////
 
@@ -211,6 +188,7 @@ extern volatile U8 touchnum[TSGET_NUM];
 extern volatile S32 db_id;   //历史数据 表格已经显示 数
 void touchresult(void); 	 //manage the instruct from dgus
 void  disp_allcount(void);	  // 取出界面 显示	 当前计数  详单
+void disp_allcount_to_pc (void);
 
 
 #define PRECOIN0  0   //用于   预置计数	 
@@ -227,12 +205,31 @@ void  disp_allcount(void);	  // 取出界面 显示	 当前计数  详单
 
 struct precoin_num 	 //用于   预置计数	 
 {
-	U32 coinnum;
+	U32 pre_count_cur;
 	U32 pre_count_set;
 	U32 coinval; //卷数
 	U32 full_flag;
 };
-extern struct precoin_num precoin_set[11];   //用于   预置计数	 
+extern struct precoin_num count_coin_temp[11];   //用于   预置计数	 
+
+extern struct disp_count_buf disp_buf;
+
+struct disp_count_buf{
+	U32 m_1yuan;
+	U32 m_5jiao;
+	U32 m_1jiao;
+	U32 m_1jiao_big;
+	U32 m_5fen;
+	U32 m_2fen;
+	U32 m_1fen;
+	U32 m_10yuan;
+	U32 m_5yuan;
+	U32 total_good;
+	U32 total_ng;
+	U32 total_money;
+};
+
+
 void disp_precount(long ze,long zs,long fg);      //   预置计数 界面   实时 显示  币种 金额  数量   预置值  币数  异币
 
 

@@ -27,6 +27,7 @@ void Timer4_IRQ(void)
 	T4_count++;
 	if(tscount >0){tscount--;}
 	if(sys_env.boot_delay >0){sys_env.boot_delay--;}
+	if(sys_env.net_task >0){sys_env.net_task--;}
 	if (sys_env.tty_online_ms > 1){sys_env.tty_online_ms--;}
 	if (T4_count > 25){
 		T4_count = 0;

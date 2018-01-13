@@ -41,7 +41,7 @@ typedef struct
 }tftp_connection_args;
 
 struct udp_pcb *Timeoutupcb; //超时PCB变量
-struct ip_addr  Timeoutaddr;
+struct ip_addr Timeoutaddr;
 u16_t           Timeoutport;
 struct udp_pcb *UDPpcb;
 /* tftp_errorcode error strings */
@@ -153,6 +153,7 @@ int tftp_send_ack_packet(struct udp_pcb *upcb, struct ip_addr *to, int to_port, 
 
 u32_t tftptimeoutEnable=0;//TFTP超时定时器
 u32_t tftptimeout=0;//TFTP超时定时器
+u32_t tftptimeoutNum=0;//TFTP超时定时器
 /* close the file sent, disconnect and close the connection */
 void tftp_cleanup_rd(struct udp_pcb *upcb, tftp_connection_args *args)
 {
@@ -176,22 +177,22 @@ void tftp_cleanup_rd(struct udp_pcb *upcb, tftp_connection_args *args)
 /* close the file writen, disconnect and close the connection */
 void tftp_cleanup_wr(struct udp_pcb *upcb, tftp_connection_args *args)
 {
-  /* close the filesystem */
+    /* close the filesystem */
 //  file_fclose(&file_CR);
 //  fs_umount(&efs2.myFs);
-  /* Free the tftp_connection_args structure reserverd for */
+    /* Free the tftp_connection_args structure reserverd for */
 	
-	dbg_null ("\nReceive Finished.\n");
-  mem_free(args);
+	cy_print ("\nReceive Finished!\n");
+    mem_free(args);
 
-  /* Disconnect the udp_pcb*/
-  udp_disconnect(upcb);
+    /* Disconnect the udp_pcb*/
+    udp_disconnect(upcb);
 
-  /* close the connection */
-  udp_remove(upcb);
+    /* close the connection */
+    udp_remove(upcb);
 
-  /* reset the callback function */
-  udp_recv(UDPpcb, recv_callback_tftp, NULL);
+    /* reset the callback function */
+    udp_recv(UDPpcb, recv_callback_tftp, NULL);
     tftptimeoutEnable=0;//关闭TFTP超时定时器
 	tftptimeout=0;
 }
@@ -333,15 +334,15 @@ void wrq_recv_callback(void *_args, struct udp_pcb *upcb, struct pbuf *pkt_buf, 
 //    n = file_write(&file_CR,
 //                   pkt_buf->len - TFTP_DATA_PKT_HDR_LEN,
 //                   (euint8*)pkt_buf->payload + TFTP_DATA_PKT_HDR_LEN);
-		memcpy (&iap_code_buf[args->tot_bytes], (uint8*)pkt_buf->payload + TFTP_DATA_PKT_HDR_LEN,
-					pkt_buf->len - TFTP_DATA_PKT_HDR_LEN);
-//		if (n <= 0)
-//		{
-//		  tftp_send_error_message(upcb, addr, port, TFTP_ERR_FILE_NOT_FOUND);
-//		  /* close the connection */
-//		  tftp_cleanup_wr(upcb, args); /* close the connection */
-//		}else{
-//		}
+		if ((args->tot_bytes) >= sizeof (iap_code_buf))
+		{
+		  tftp_send_error_message(upcb, addr, port, TFTP_ERR_DISKFULL);
+		  /* close the connection */
+		  tftp_cleanup_wr(upcb, args); /* close the connection */
+		}else{
+			memcpy (&iap_code_buf[args->tot_bytes], (uint8*)pkt_buf->payload + TFTP_DATA_PKT_HDR_LEN,
+						pkt_buf->len - TFTP_DATA_PKT_HDR_LEN);
+		}
 
     /* update our block number to match the block number just received */
     args->block++;
@@ -373,24 +374,26 @@ void wrq_recv_callback(void *_args, struct udp_pcb *upcb, struct pbuf *pkt_buf, 
    */
   if (pkt_buf->len < TFTP_DATA_PKT_LEN_MAX)
   {
-    
     tftp_cleanup_wr(upcb, args);
     pbuf_free(pkt_buf);
+    sys_env.tty_online_ms = 2;//通知更新完成
+	sys_env.update_flag = NET_UPDATE;
   }
   else
   {
     pbuf_free(pkt_buf);
 	if (args->block % (64) == 0){
-		dbg_null ("\n");
+		cy_print ("\n");
 	}
-	dbg_null (".");
+	cy_print (".");
     return;
   }
 
 }
 
 
-int tftp_process_write(struct udp_pcb *upcb, struct ip_addr *to, int to_port, char *FileName)
+
+int tftp_process_write(struct udp_pcb *upcb, struct ip_addr *to, int to_port, s_tftp_cmd *p_tftp_cmd)
 {
   tftp_connection_args *args = NULL;
 
@@ -417,21 +420,30 @@ int tftp_process_write(struct udp_pcb *upcb, struct ip_addr *to, int to_port, ch
     return 0;
   }
 
-  args->op = TFTP_WRQ;
-  args->to_ip.addr = to->addr;
-  args->to_port = to_port;
-  /* the block # used as a positive response to a WRQ is _always_ 0!!! (see RFC1350)  */
-  args->block = 0;
-  args->tot_bytes = 0;
+   Timeoutargs=	args;//记录下当前的args
+	args->op = TFTP_WRQ;
+	args->to_ip.addr = to->addr;
+	args->to_port = to_port;
+	/* the block # used as a positive response to a WRQ is _always_ 0!!! (see RFC1350)  */
+	args->block = 0;
+	args->tot_bytes = 0;
 
-	/* set callback for receives on this UDP PCB (Protocol Control Block) */
-	udp_recv(upcb, wrq_recv_callback, args);
-	Timeoutupcb =upcb;//记录下当前建立用于传输的udp控制块准备超时释放用
+	if ((strcmp (p_tftp_cmd->op, "command") == 0) && (strcmp (p_tftp_cmd->op_v, "reset") == 0)){
+		tftp_send_ack_packet(upcb, to, to_port, args->block);
+		tftp_cleanup_wr(upcb, args);
+		cy_print ("Reset...");
+		sys_env.net_task = 50;
+	}else{	
+		/* set callback for receives on this UDP PCB (Protocol Control Block) */
+		udp_recv(upcb, wrq_recv_callback, args);
+		Timeoutupcb =upcb;//记录下当前建立用于传输的udp控制块准备超时释放用
 
-	/* initiate the write transaction by sending the first ack */
-	tftp_send_ack_packet(upcb, to, to_port, args->block);
-	dbg_null (".");
-	tftptimeoutEnable=1;//开启TFTP超时定时器
+		/* initiate the write transaction by sending the first ack */
+		tftp_send_ack_packet(upcb, to, to_port, args->block);
+		cy_print (".");
+		tftptimeoutEnable=1;//开启TFTP超时定时器
+	}
+
 	return 0;
 }
 
@@ -443,7 +455,8 @@ int tftp_process_write(struct udp_pcb *upcb, struct ip_addr *to, int to_port, ch
 void process_tftp_request(struct pbuf *pkt_buf, struct ip_addr *addr, u16_t port)
 {
   tftp_opcode op = tftp_decode_op(pkt_buf->payload);
-  char FileName[30];
+  //char FileName[30];
+	s_tftp_cmd tftp_cmd;
   struct udp_pcb *upcb;
   err_t err;
 	
@@ -473,12 +486,13 @@ void process_tftp_request(struct pbuf *pkt_buf, struct ip_addr *addr, u16_t port
   }
 
 
+	sys_env.update_flag = NET_UPDATEING;
   switch (op)
   {
 
     case TFTP_RRQ:    /* TFTP RRQ (read request)  */
       /* Read the name of the file asked by the client to be sent from the SD card */
-      tftp_extract_filename(FileName, pkt_buf->payload);
+      tftp_extract_filename(&tftp_cmd, pkt_buf->payload, pkt_buf->len);
 
       /* If Could not open filesystem */
 //      if (efs_init(&efs1, 0) != 0)
@@ -506,13 +520,13 @@ void process_tftp_request(struct pbuf *pkt_buf, struct ip_addr *addr, u16_t port
 	  Timeoutport=port;//记录下来
 	  //Timeoutportpkt_buf=pkt_buf;
       /* Start the TFTP read mode*/
-      tftp_process_read(upcb, addr, port, FileName);
+      tftp_process_read(upcb, addr, port, tftp_cmd.file_name);
       break;
 
     case TFTP_WRQ:    /* TFTP WRQ (write request)   */
-      /* Read the name of the file asked by the client to received and writen in the SD card */
-      tftp_extract_filename(FileName, pkt_buf->payload);
-		dbg ("Receive File Name: %s\n", FileName);
+		/* Read the name of the file asked by the client to received and writen in the SD card */
+		tftp_extract_filename(&tftp_cmd, pkt_buf->payload, pkt_buf->len);
+		cy_print ("Receive File Name: %s\n", tftp_cmd.file_name);
       /* If Could not open filesystem */
 //      if (efs_init(&efs2, 0) != 0)
 //      {
@@ -539,18 +553,18 @@ void process_tftp_request(struct pbuf *pkt_buf, struct ip_addr *addr, u16_t port
       /* Start the TFTP write mode*/
 		Timeoutaddr=*addr;
 		Timeoutport=port;//记录下来
-		tftp_process_write(upcb, addr, port, FileName);
+		tftp_process_write(upcb, addr, port, &tftp_cmd);
       break;
 
     default:
 
-
-      /* sEndTransfera generic access violation message */
-      tftp_send_error_message(upcb, addr, port, TFTP_ERR_ACCESS_VIOLATION);
-      /* TFTP unknown request op */
-      /* no need to use tftp_cleanup_wr because no "tftp_connection_args" struct has been malloc'd   */
-      udp_remove(upcb);
-	  udp_recv(UDPpcb, recv_callback_tftp, NULL);//重新注册69端口回调  
+		sys_env.update_flag = NULL_UPDATE;
+		/* sEndTransfera generic access violation message */
+		tftp_send_error_message(upcb, addr, port, TFTP_ERR_ACCESS_VIOLATION);
+		/* TFTP unknown request op */
+		/* no need to use tftp_cleanup_wr because no "tftp_connection_args" struct has been malloc'd   */
+		udp_remove(upcb);
+		udp_recv(UDPpcb, recv_callback_tftp, NULL);//重新注册69端口回调  
       break;
   }
 
@@ -560,7 +574,6 @@ void recv_callback_tftp (void *arg, struct udp_pcb *upcb, struct pbuf *pkt_buf, 
 {
 	/* process new connection request */
 	process_tftp_request(pkt_buf, addr, port);
-
 	pbuf_free(pkt_buf); 
 }
 
@@ -596,10 +609,13 @@ void TftpTrm250ms(void) //250MS调用一次
 	if( tftptimeoutEnable){//如果开启超时定时器则进入
 	
 		tftptimeout++;
-		if(tftptimeout > 8){ //超过3S之后结束UDPPCB释放BUF。
-			tftp_send_error_message(Timeoutupcb, &Timeoutaddr, Timeoutport,TFTP_ERR_NOTDEFINED);
+		if(tftptimeout > 13){ //超过3S之后结束UDPPCB释放BUF。
+			tftp_send_error_message(Timeoutupcb, &Timeoutaddr, Timeoutport, TFTP_ERR_NOTDEFINED);
 			tftp_cleanup_rd(Timeoutupcb, Timeoutargs);	
 			dbg ("TFTP Server TimeOut\n");
+			sys_env.update_flag = NULL_UPDATE;
+		}else if ((tftptimeout % 2) == 0){
+			tftp_send_ack_packet(Timeoutupcb, &Timeoutaddr, Timeoutport, Timeoutargs->block);
 		}
 	}
 }
